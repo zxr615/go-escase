@@ -8,18 +8,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/olivere/elastic/v7"
 	"github.com/schollz/progressbar/v3"
 
+	"github.com/pkg/errors"
+
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/olivere/elastic/v7"
 )
 
 func main() {
-	// 初始化 es
-	if err := es.New(); err != nil {
-		log.Fatalln(err)
-	}
-
 	type Article struct {
 		Id          uint32 `json:"id"`           // Id
 		CategoryId  uint8  `json:"category_id"`  // 分类
@@ -34,58 +31,53 @@ func main() {
 		UpdatedAt   string `json:"updated_at"`   // 更新时间
 	}
 
-	total := 5000
-	batch := 100
-	createIndexRs, err := es.CreateIndex("article", mapping())
-	if err != nil {
-		log.Fatalln(err)
-	}
+	err := es.Reload("article", mapping(), func(newIndexName string) error {
+		total := 500
+		batch := 100
 
-	var id uint32 = 0
-	bar := progressbar.Default(int64(total))
-	for i := 0; i < total/batch; i++ {
-		bulk := es.Client.Bulk()
-		for k := 0; k < batch; k++ {
-			id++
-			article := Article{
-				Id:          id,
-				CategoryId:  gofakeit.Uint8(),
-				Title:       faker.Article(10),
-				Content:     faker.Article(100),
-				BrowsNum:    gofakeit.Uint8(),
-				CollectNum:  gofakeit.Uint8(),
-				UpvoteNum:   gofakeit.Uint8(),
-				IsRecommend: uint8(gofakeit.RandomUint([]uint{1, 2, 3})),
-				IsSolve:     uint8(gofakeit.RandomUint([]uint{1, 2, 3})),
-				CreatedAt:   gofakeit.DateRange(time.Now().AddDate(-1, 0, 0), time.Now()).Format("2006-01-02 15:04:05"),
-				UpdatedAt:   gofakeit.DateRange(time.Now().AddDate(-1, 0, 0), time.Now()).Format("2006-01-02 15:04:05"),
+		var id uint32 = 0
+		bar := progressbar.NewOptions(total)
+		for i := 0; i < total/batch; i++ {
+			bulk := es.Client.Bulk()
+			for k := 0; k < batch; k++ {
+				id++
+				article := Article{
+					Id:          id,
+					CategoryId:  gofakeit.Uint8(),
+					Title:       faker.Article(10),
+					Content:     faker.Article(100),
+					BrowsNum:    gofakeit.Uint8(),
+					CollectNum:  gofakeit.Uint8(),
+					UpvoteNum:   gofakeit.Uint8(),
+					IsRecommend: uint8(gofakeit.RandomUint([]uint{1, 2, 3})),
+					IsSolve:     uint8(gofakeit.RandomUint([]uint{1, 2, 3})),
+					CreatedAt:   gofakeit.DateRange(time.Now().AddDate(-1, 0, 0), time.Now()).Format("2006-01-02 15:04:05"),
+					UpdatedAt:   gofakeit.DateRange(time.Now().AddDate(-1, 0, 0), time.Now()).Format("2006-01-02 15:04:05"),
+				}
+				bulk.Add(elastic.NewBulkIndexRequest().Index(newIndexName).Type("_doc").Id(strconv.Itoa(int(id))).Doc(article))
 			}
-			bulk.Add(elastic.NewBulkIndexRequest().Index(createIndexRs.Index).Type("_doc").Id(strconv.Itoa(int(id))).Doc(article))
+
+			do, err := bulk.Do(context.Background())
+			if err != nil {
+				return err
+			}
+
+			if do.Errors {
+				return errors.New("导入错误:do")
+			}
+
+			_ = bar.Add(batch)
 		}
 
-		do, err := bulk.Do(context.Background())
-		if err != nil {
-			log.Fatalln(err, do)
-		}
+		_ = bar.Finish()
+		return nil
+	})
 
-		if do.Errors {
-			log.Fatalln("导入错误")
-		}
-
-		time.Sleep(5 * time.Millisecond)
-		_ = bar.Add(batch)
-	}
-
-	alias, err := es.SetAlias(createIndexRs.Index, "article")
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 
-	if !alias.Acknowledged {
-		log.Fatalln("导入错误")
-	}
-
-	_ = bar.Finish()
+	log.Println("SUCCESS")
 }
 
 func mapping() map[string]interface{} {

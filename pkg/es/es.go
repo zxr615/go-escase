@@ -3,8 +3,9 @@ package es
 import (
 	"context"
 	"log"
-	"os"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/olivere/elastic/v7"
 )
@@ -14,7 +15,7 @@ var Client *elastic.Client
 func New() error {
 	client, err := elastic.NewSimpleClient(
 		elastic.SetURL("http://127.0.0.1:9200"),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
+		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
 	)
 	if err != nil {
 		return err
@@ -58,6 +59,66 @@ func SetAlias(indexName string, aliasName string) (*elastic.AliasResult, error) 
 }
 
 // DeleteIndex 删除索引
-func DeleteIndex(indices ...string) (*elastic.IndicesDeleteResponse, error) {
-	return Client.DeleteIndex(indices...).Do(context.Background())
+func DeleteIndex(indices []string) (*elastic.IndicesDeleteResponse, error) {
+	if len(indices) == 0 {
+		return nil, nil
+	}
+	return Client.DeleteIndex().Index(indices).Do(context.Background())
+}
+
+// DeleteIndexByPrefix 通过前缀批量删除索引
+func DeleteIndexByPrefix(prefix string, excludeIndex string) (*elastic.IndicesDeleteResponse, error) {
+	indices, err := Client.CatIndices().Index(prefix + "*").Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	var wait []string
+	for _, i := range indices {
+		if i.Index == excludeIndex {
+			continue
+		}
+
+		wait = append(wait, i.Index)
+	}
+
+	return DeleteIndex(wait)
+}
+
+// Reload 封装导入流程：1 创建新索引；2 导入数据；3 切换别名；4 删除旧索引
+// aliasName 别名
+// mapping es的 mapping 定义
+// callback 导入数据具体实现
+func Reload(aliasName string, mapping map[string]interface{}, callback func(newIndexName string) error) error {
+	if err := New(); err != nil {
+		log.Fatalln(err)
+	}
+
+	// 创建一个新的索引
+	createIndexRs, err := CreateIndex(aliasName, mapping)
+	if err != nil {
+		return err
+	}
+	createNewIndexName := createIndexRs.Index
+
+	// 调用自定义执行程序
+	if err := callback(createNewIndexName); err != nil {
+		return err
+	}
+
+	// 切换别名
+	alias, err := SetAlias(createNewIndexName, aliasName)
+	if err != nil {
+		return err
+	}
+	if !alias.Acknowledged {
+		return errors.New("导入错误")
+	}
+
+	// 删除旧索引
+	if _, err := DeleteIndexByPrefix(aliasName, createNewIndexName); err != nil {
+		return err
+	}
+
+	return nil
 }
