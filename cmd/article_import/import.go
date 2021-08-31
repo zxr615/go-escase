@@ -21,23 +21,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	//type Article struct {
-	//	Id          uint32 `json:"id"`           // Id
-	//	CategoryId  uint8  `json:"category_id"`  // 分类
-	//	Title       string `json:"title"`        // 标题
-	//	Content     string `json:"content"`      // 内容
-	//	BrowsNum    uint8  `json:"brows_num"`    // 浏览量
-	//	CollectNum  uint8  `json:"collect_num"`  // 收藏量
-	//	UpvoteNum   uint8  `json:"upvote_num"`   // 点赞量
-	//	IsRecommend uint8  `json:"is_recommend"` // 是否推荐:1=是;2=否
-	//	IsSolve     uint8  `json:"is_solve"`     // 是否解决:1=是;2=否
-	//	CreatedAt   string `json:"created_at"`   // 创建时间
-	//	UpdatedAt   string `json:"updated_at"`   // 更新时间
-	//}
-
 	total := 500
 	batch := 100
-	createIndexRs, err := es.CreateIndex("article", mapping())
+	createIndexRs, err := es.CreateIndex(model.ArticleEsAlias, mapping())
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -65,8 +51,13 @@ func main() {
 		_ = bar.Add(batch)
 	}
 
-	alias, err := es.SetAlias(createIndexRs.Index, "article")
+	alias, err := es.SetAlias(createIndexRs.Index, model.ArticleEsAlias)
 	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// 删除旧索引
+	if _, err := es.DeleteIndexByPrefix(model.ArticleEsAlias, createIndexRs.Index); err != nil {
 		log.Fatalln(err)
 	}
 

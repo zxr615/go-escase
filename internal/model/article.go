@@ -1,5 +1,8 @@
 package model
 
+// ArticleEsAlias es 索引别名
+const ArticleEsAlias = "article"
+
 type Article struct {
 	Id          uint32 `json:"id"`           // Id
 	CategoryId  uint8  `json:"category_id"`  // 分类

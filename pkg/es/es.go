@@ -3,6 +3,7 @@ package es
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -15,7 +16,7 @@ var Client *elastic.Client
 func New() error {
 	client, err := elastic.NewSimpleClient(
 		elastic.SetURL("http://127.0.0.1:9200"),
-		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
+		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
 	)
 	if err != nil {
 		return err

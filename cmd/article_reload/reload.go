@@ -18,9 +18,9 @@ import (
 )
 
 func main() {
-	err := es.Reload("article", mapping(), func(newIndexName string) error {
-		total := 500
-		batch := 100
+	err := es.Reload(model.ArticleEsAlias, mapping(), func(newIndexName string) error {
+		total := 500 // 导入总数
+		batch := 100 // 每次导入数量
 
 		var id uint32 = 0
 		bar := progressbar.NewOptions(total)
