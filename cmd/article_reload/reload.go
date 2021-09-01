@@ -19,8 +19,8 @@ import (
 
 func main() {
 	err := es.Reload(model.ArticleEsAlias, mapping(), func(newIndexName string) error {
-		total := 500 // 导入总数
-		batch := 100 // 每次导入数量
+		total := 10000 // 导入总数
+		batch := 500   // 每次导入数量
 
 		var id uint32 = 0
 		bar := progressbar.NewOptions(total)
@@ -62,8 +62,8 @@ func genArticle(id uint32) model.Article {
 		BrowsNum:    gofakeit.Uint8(),
 		CollectNum:  gofakeit.Uint8(),
 		UpvoteNum:   gofakeit.Uint8(),
-		IsRecommend: uint8(gofakeit.RandomUint([]uint{1, 2, 3})),
-		IsSolve:     uint8(gofakeit.RandomUint([]uint{1, 2, 3})),
+		IsRecommend: uint8(gofakeit.RandomUint([]uint{1, 2})),
+		IsSolve:     uint8(gofakeit.RandomUint([]uint{1, 2})),
 		CreatedAt:   gofakeit.DateRange(time.Now().AddDate(-1, 0, 0), time.Now()).Format("2006-01-02 15:04:05"),
 		UpdatedAt:   gofakeit.DateRange(time.Now().AddDate(-1, 0, 0), time.Now()).Format("2006-01-02 15:04:05"),
 	}
@@ -73,10 +73,18 @@ func mapping() map[string]interface{} {
 	return map[string]interface{}{
 		"mappings": map[string]interface{}{
 			"properties": map[string]interface{}{
-				"id":           map[string]string{"type": "integer"},
-				"category_id":  map[string]string{"type": "integer"},
-				"title":        map[string]string{"type": "text"},
-				"content":      map[string]string{"type": "text"},
+				"id":          map[string]string{"type": "integer"},
+				"category_id": map[string]string{"type": "integer"},
+				"title": map[string]string{
+					"type":            "text",
+					"analyzer":        "ik_smart",
+					"search_analyzer": "ik_smart",
+				},
+				"content": map[string]string{
+					"type":            "text",
+					"analyzer":        "ik_max_word",
+					"search_analyzer": "ik_max_word",
+				},
 				"brows_num":    map[string]string{"type": "integer"},
 				"collect_num":  map[string]string{"type": "integer"},
 				"upvote_num":   map[string]string{"type": "integer"},

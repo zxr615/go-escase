@@ -14,9 +14,15 @@ import (
 var Client *elastic.Client
 
 func New() error {
+	esLogFile, err := os.OpenFile("es.log", os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		return err
+	}
+
 	client, err := elastic.NewSimpleClient(
 		elastic.SetURL("http://127.0.0.1:9200"),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
+		elastic.SetInfoLog(log.New(esLogFile, "", log.Lshortfile|log.LstdFlags)),
+		elastic.SetTraceLog(log.New(esLogFile, "", log.Lshortfile|log.LstdFlags)),
 	)
 	if err != nil {
 		return err
