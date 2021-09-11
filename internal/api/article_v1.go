@@ -66,8 +66,12 @@ func (a ArticleV1) Search(c *gin.Context) {
 
 	// 分页
 	from := (req.Page - 1) * req.PageSize
+	// 指定查询字段
+	include := []string{"id", "category_id", "title", "brows_num", "collect_num", "upvote_num", "is_recommend", "is_solve", "created_at"}
 	builder.
-		FetchSourceContext(elastic.NewFetchSourceContext(true)).
+		FetchSourceContext(
+			elastic.NewFetchSourceContext(true).Include(include...),
+		).
 		From(from).
 		Size(req.PageSize)
 

@@ -17,6 +17,8 @@ func main() {
 
 		// 初始化路由
 		router := gin.Default()
+
+		// 改进前
 		v1 := router.Group("/article/v1")
 		{
 			v1.GET("/search", api.NewArticleV1().Search)
@@ -24,6 +26,7 @@ func main() {
 			v1.GET("/related", api.NewArticleV1().Related)
 		}
 
+		// 改进后
 		v2 := router.Group("/article/v2")
 		{
 			v2.GET("/search", api.NewArticleV2().Search)
