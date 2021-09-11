@@ -71,6 +71,10 @@ func genArticle(id uint32) model.Article {
 
 func mapping() map[string]interface{} {
 	return map[string]interface{}{
+		"settings": map[string]int{
+			"number_of_shards":   1,
+			"number_of_replicas": 4,
+		},
 		"mappings": map[string]interface{}{
 			"properties": map[string]interface{}{
 				"id":          map[string]string{"type": "integer"},

@@ -29,7 +29,8 @@ const (
 func (a ArticleV1) Search(c *gin.Context) {
 	req := new(model.SearchRequest)
 	if err := c.ShouldBind(req); err != nil {
-		c.JSON(500, err)
+		c.JSON(400, err.Error())
+		return
 	}
 
 	// 构建搜索
@@ -73,7 +74,8 @@ func (a ArticleV1) Search(c *gin.Context) {
 	// 执行查询
 	do, err := builder.Do(context.Background())
 	if err != nil {
-		c.JSON(500, err)
+		c.JSON(500, err.Error())
+		return
 	}
 
 	// 获取匹配到的数量
@@ -97,6 +99,7 @@ func (a ArticleV1) Search(c *gin.Context) {
 			"list":  list,
 		},
 	})
+	return
 }
 
 // Recommend 文章推荐
@@ -143,5 +146,43 @@ func (a ArticleV1) Recommend(c *gin.Context) {
 
 // Related 相关文章
 func (a ArticleV1) Related(c *gin.Context) {
+	req := new(model.RelatedRequest)
+	if err := c.ShouldBind(req); err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
 
+	builder := es.Client.Search().Index(model.ArticleEsAlias)
+	bq := elastic.NewBoolQuery()
+	builder.Query(bq.Must(
+		elastic.NewMatchQuery("category_id", req.CategoryId),
+		elastic.NewMatchQuery("is_solve", model.ArticleIsSolveYes),
+	))
+	builder.Sort("brows_num", false)
+
+	builder.From(0).Size(10)
+
+	do, err := builder.Do(context.Background())
+	if err != nil {
+		c.JSON(500, err.Error())
+		return
+	}
+
+	list := make([]model.RelatedResponse, len(do.Hits.Hits))
+	for i, raw := range do.Hits.Hits {
+		tmpArticle := model.RelatedResponse{}
+		if err := json.Unmarshal(raw.Source, &tmpArticle); err != nil {
+			log.Println(err)
+			continue
+		}
+
+		list[i] = tmpArticle
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"data": gin.H{
+			"list": list,
+		},
+	})
 }

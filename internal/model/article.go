@@ -38,6 +38,11 @@ type SearchRequest struct {
 	PageSize   int    `form:"page_size,default=10"`                   // 每页数量
 }
 
+// RelatedRequest 相关文章请求结构
+type RelatedRequest struct {
+	CategoryId uint8 `form:"category_id" binding:"required"` // 分类
+}
+
 // SearchResponse 搜索返回结构
 type SearchResponse struct {
 	Id          uint32 `json:"id"`           // Id
@@ -60,4 +65,12 @@ type RecommendResponse struct {
 	IsRecommend uint8  `json:"is_recommend"` // 是否推荐:1=是;2=否
 	UpvoteNum   uint8  `json:"upvote_num"`   // 点赞量
 	CreatedAt   string `json:"created_at"`   // 创建时间
+}
+
+// RelatedResponse 相关文章
+type RelatedResponse struct {
+	Id         uint32 `json:"id"`          // Id
+	Title      string `json:"title"`       // 标题
+	BrowsNum   uint8  `json:"brows_num"`   // 浏览量
+	CategoryId uint8  `json:"category_id"` // 分类
 }
