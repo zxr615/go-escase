@@ -27,8 +27,7 @@ func (a ArticleV2) Search(c *gin.Context) {
 		WhereCategoryId(req.CategoryId).
 		WhereIsSolve(req.IsSolve).
 		Sort(req.Sort).
-		Page(req.Page).
-		PageSize(req.PageSize).
+		Paginate(req.Page, req.PageSize).
 		DecodeSearch()
 
 	if err != nil {
@@ -52,6 +51,7 @@ func (a ArticleV2) Recommend(c *gin.Context) {
 		WhereCategoryId(model.ArticleIsRecommendYes).
 		WhereIsSolve(model.ArticleIsSolveYes).
 		OrderByDesc("brows_num").
+		PageSize(5).
 		DecodeRecommend()
 
 	if err != nil {
@@ -81,6 +81,7 @@ func (a ArticleV2) Related(c *gin.Context) {
 		WhereCategoryId(req.CategoryId).
 		WhereIsSolve(model.ArticleIsSolveYes).
 		OrderByDesc("brows_num").
+		PageSize(10).
 		DecodeRelated()
 	if err != nil {
 		c.JSON(400, err.Error())

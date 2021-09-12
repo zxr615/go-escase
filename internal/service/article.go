@@ -15,7 +15,7 @@ type article struct {
 	must   []elastic.Query
 	filter []elastic.Query
 	sort   []elastic.Sorter
-	page   int
+	from   int
 	size   int
 }
 
@@ -30,7 +30,7 @@ func NewArticle() *article {
 		must:   make([]elastic.Query, 0),
 		filter: make([]elastic.Query, 0),
 		sort:   make([]elastic.Sorter, 0),
-		page:   0,
+		from:   0,
 		size:   10,
 	}
 }
@@ -88,13 +88,16 @@ func (a article) OrderByAsc(field string) article {
 	return a
 }
 
-// Page 分页
-func (a article) Page(page int) article {
-	a.page = page
+// Paginate 分页
+// page 当前页码
+// pageSize 每页数量
+func (a article) Paginate(page, pageSize int) article {
+	a.from = (page - 1) * pageSize
+	a.size = pageSize
 	return a
 }
 
-// PageSize 分页数量
+// PageSize 每页数量
 func (a article) PageSize(pageSize int) article {
 	a.size = pageSize
 	return a
@@ -109,13 +112,13 @@ func (a article) DecodeSearch() ([]model.SearchResponse, int64, error) {
 
 	list := make([]model.SearchResponse, len(rawList))
 	for i, raw := range rawList {
-		tmpArticle := model.SearchResponse{}
-		if err := json.Unmarshal(raw, &tmpArticle); err != nil {
+		tmp := model.SearchResponse{}
+		if err := json.Unmarshal(raw, &tmp); err != nil {
 			log.Println(err)
 			continue
 		}
 
-		list[i] = tmpArticle
+		list[i] = tmp
 	}
 
 	return list, total, nil
@@ -130,13 +133,13 @@ func (a article) DecodeRecommend() ([]model.RecommendResponse, int64, error) {
 
 	list := make([]model.RecommendResponse, len(rawList))
 	for i, raw := range rawList {
-		tmpArticle := model.RecommendResponse{}
-		if err := json.Unmarshal(raw, &tmpArticle); err != nil {
+		tmp := model.RecommendResponse{}
+		if err := json.Unmarshal(raw, &tmp); err != nil {
 			log.Println(err)
 			continue
 		}
 
-		list[i] = tmpArticle
+		list[i] = tmp
 	}
 
 	return list, total, nil
@@ -151,13 +154,13 @@ func (a article) DecodeRelated() ([]model.RelatedResponse, int64, error) {
 
 	list := make([]model.RelatedResponse, len(rawList))
 	for i, raw := range rawList {
-		tmpArticle := model.RelatedResponse{}
-		if err := json.Unmarshal(raw, &tmpArticle); err != nil {
+		tmp := model.RelatedResponse{}
+		if err := json.Unmarshal(raw, &tmp); err != nil {
 			log.Println(err)
 			continue
 		}
 
-		list[i] = tmpArticle
+		list[i] = tmp
 	}
 
 	return list, total, nil
@@ -167,8 +170,6 @@ func (a article) DecodeRelated() ([]model.RelatedResponse, int64, error) {
 func (a article) Searcher(include ...interface{}) ([]json.RawMessage, int64, error) {
 	builder := es.Client.Search().Index(model.ArticleEsAlias)
 
-	// 计算 offset
-	from := (a.page - 1) * a.size
 	// 查询的字段
 	includeKeys := make([]string, 0)
 	if len(include) > 0 {
@@ -184,7 +185,8 @@ func (a article) Searcher(include ...interface{}) ([]json.RawMessage, int64, err
 	// 执行查询
 	do, err := builder.
 		FetchSourceContext(elastic.NewFetchSourceContext(true).Include(includeKeys...)).
-		From(from).Size(a.size).
+		From(a.from).
+		Size(a.size).
 		SortBy(a.sort...).
 		Do(context.Background())
 
