@@ -1,3 +1,15 @@
+## 介绍
+- 基于 es7.14 开发，使用 [ik_smart](https://github.com/medcl/elasticsearch-analysis-ik) 分词
+
+- 使用 [olivere/elastic](https://github.com/olivere/elastic) go-es扩展
+
+- 使用到 `gin` 路由
+
+- 批量生成 [测试数据](https://github.com/brianvoe/gofakeit)
+
+- 批量导入数据到es [case](https://github.com/zxr615/go-escase/blob/master/cmd/article_reload/reload.go)
+
+- v1改进前完整代码&v2 改进后完整代码
 ## clone 
 ```shell
 git clone git@github.com:zxr615/go-escase.git
@@ -18,9 +30,6 @@ go run go-escase/cmd/article_reload
 ```shell
 go run main.go
 ```
-
-## 分词
-使用 [ik_smart 分词](https://github.com/medcl/elasticsearch-analysis-ik)
 
 ## api 描述
 search    搜索文章：按照给定条件搜索结果  
