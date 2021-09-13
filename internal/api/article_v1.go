@@ -115,7 +115,7 @@ func (a ArticleV1) Recommend(c *gin.Context) {
 
 	builder.Query(bq.Filter(
 		// 推荐文章
-		elastic.NewTermQuery("category_id", model.ArticleIsRecommendYes),
+		elastic.NewTermQuery("is_recommend", model.ArticleIsRecommendYes),
 		// 已解决
 		elastic.NewTermQuery("is_solve", model.ArticleIsSolveYes),
 	))
@@ -160,6 +160,7 @@ func (a ArticleV1) Related(c *gin.Context) {
 	bq := elastic.NewBoolQuery()
 	builder.Query(bq.Must(
 		elastic.NewMatchQuery("category_id", req.CategoryId),
+		elastic.NewMatchQuery("is_recommend", model.ArticleIsRecommendYes),
 		elastic.NewMatchQuery("is_solve", model.ArticleIsSolveYes),
 	))
 	builder.Sort("brows_num", false)

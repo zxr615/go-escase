@@ -19,8 +19,8 @@ import (
 
 func main() {
 	err := es.Reload(model.ArticleEsAlias, mapping(), func(newIndexName string) error {
-		total := 10000 // 导入总数
-		batch := 500   // 每次导入数量
+		total := 1000 // 导入总数
+		batch := 50   // 每次导入数量
 
 		var id uint32 = 0
 		bar := progressbar.NewOptions(total)
@@ -56,7 +56,7 @@ func main() {
 func genArticle(id uint32) model.Article {
 	return model.Article{
 		Id:          id,
-		CategoryId:  gofakeit.Uint8(),
+		CategoryId:  uint8(gofakeit.Number(1,10)),
 		Title:       faker.Article(10),
 		Content:     faker.Article(100),
 		BrowsNum:    gofakeit.Uint8(),

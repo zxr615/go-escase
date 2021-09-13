@@ -48,10 +48,10 @@ func (a ArticleV2) Search(c *gin.Context) {
 // Recommend 文章推荐
 func (a ArticleV2) Recommend(c *gin.Context) {
 	list, _, err := service.NewArticle().
-		WhereCategoryId(model.ArticleIsRecommendYes).
+		WhereIsRecommend(model.ArticleIsRecommendYes).
 		WhereIsSolve(model.ArticleIsSolveYes).
 		OrderByDesc("brows_num").
-		PageSize(5).
+		PageSize(10).
 		DecodeRecommend()
 
 	if err != nil {
@@ -79,6 +79,7 @@ func (a ArticleV2) Related(c *gin.Context) {
 
 	list, _, err := service.NewArticle().
 		WhereCategoryId(req.CategoryId).
+		WhereIsRecommend(model.ArticleIsRecommendYes).
 		WhereIsSolve(model.ArticleIsSolveYes).
 		OrderByDesc("brows_num").
 		PageSize(10).

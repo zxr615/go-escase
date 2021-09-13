@@ -62,6 +62,15 @@ func (a article) WhereIsSolve(isSolve uint8) article {
 	return a
 }
 
+// WhereIsRecommend 是否推荐
+func (a article) WhereIsRecommend(isRecommend uint8) article {
+	if isRecommend != 0 {
+		a.filter = append(a.filter, elastic.NewTermQuery("is_recommend", isRecommend))
+	}
+
+	return a
+}
+
 // Sort 排序
 func (a article) Sort(sort uint8) article {
 	switch sort {
