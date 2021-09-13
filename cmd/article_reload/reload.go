@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"es-demo/internal/model"
-	"es-demo/pkg/es"
-	"es-demo/pkg/faker"
+	"go-escase/internal/model"
+	"go-escase/pkg/es"
+	"go-escase/pkg/faker"
 	"log"
 	"strconv"
 	"time"

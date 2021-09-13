@@ -1,8 +1,8 @@
 package main
 
 import (
-	"es-demo/internal/api"
-	"es-demo/pkg/es"
+	"go-escase/internal/api"
+	"go-escase/pkg/es"
 	"log"
 
 	"github.com/gin-gonic/gin"

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"es-demo/internal/model"
-	"es-demo/internal/service"
+	"go-escase/internal/model"
+	"go-escase/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

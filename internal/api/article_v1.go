@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"es-demo/internal/model"
-	"es-demo/pkg/es"
+	"go-escase/internal/model"
+	"go-escase/pkg/es"
 	"log"
 	"net/http"
 

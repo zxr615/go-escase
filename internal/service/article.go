@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"es-demo/internal/model"
-	"es-demo/pkg/es"
-	"es-demo/pkg/structer"
+	"go-escase/internal/model"
+	"go-escase/pkg/es"
+	"go-escase/pkg/structer"
 	"log"
 
 	"github.com/olivere/elastic/v7"

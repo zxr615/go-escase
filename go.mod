@@ -1,4 +1,4 @@
-module es-demo
+module go-escase
 
 go 1.16
 
