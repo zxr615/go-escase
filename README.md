@@ -8,9 +8,10 @@ git clone git@github.com:zxr615/go-escase.git
 go mod download
 ```
 
-## 导入文章数据
+## 导入测试文章数据
+> 内容是鲁迅的《孔乙己》，随机截取文本内容作为文章标题与文章内容
 ```shell
-go run es-demo/cmd/article_reload
+go run go-eacase/cmd/article_reload
 ```
 
 ## 启动程序
